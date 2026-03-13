@@ -11,24 +11,36 @@ export default function Login() {
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+ e.preventDefault();
+ e.stopPropagation();  // Prevent any bubbling
+ 
+ setError('');
+ setLoading(true);
 
-    try {
-      const response = await login(email, password);
-      // Redirect based on role
-      if (response.user.role === 'faculty' || response.user.role === 'admin') {
-        navigate('/dashboard');
-      } else {
-        navigate('/student-home');
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
-    } finally {
-      setLoading(false);
-    }
-  };
+ console.log('🔐 Login attempt for:', email);
+
+ try {
+ const response = await login(email, password);
+ console.log('✅ Login response received:', response);
+   
+   // Small delay to ensure state updates propagate
+  await new Promise(resolve => setTimeout(resolve, 100));
+   
+   // Redirect based on role
+ if (response.user.role === 'faculty' || response.user.role === 'admin') {
+  console.log('🔄 Navigating to dashboard...');
+    navigate('/dashboard', { replace: true });
+  } else {
+  console.log('🔄 Navigating to student-home...');
+    navigate('/student-home', { replace: true });
+  }
+ } catch (err) {
+  console.error('❌ Login error:', err);
+  setError(err.response?.data?.message || 'Login failed');
+ } finally {
+  setLoading(false);
+ }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center p-4">

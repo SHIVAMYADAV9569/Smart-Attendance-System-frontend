@@ -8,6 +8,7 @@ export default function StudentAttendanceStatus() {
   const [error, setError] = useState('');
   const [summary, setSummary] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [markingId, setMarkingId] = useState(null); // Track which student is being marked
 
   useEffect(() => {
     fetchStudentsStatus();
@@ -25,6 +26,23 @@ export default function StudentAttendanceStatus() {
       setError('Failed to load students attendance status');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Handle marking attendance
+  const handleMarkAttendance = async (studentId, status) => {
+    try {
+      setMarkingId(studentId);
+      await attendanceAPI.markAttendance(studentId, status);
+
+      // Refresh the list to show updated status
+      await fetchStudentsStatus();
+      // No alert - silent update
+    } catch (err) {
+      console.error('Error marking attendance:', err);
+      // No alert - just log error
+    } finally {
+      setMarkingId(null);
     }
   };
 
@@ -154,32 +172,38 @@ export default function StudentAttendanceStatus() {
               {/* Status Buttons */}
               <div className="flex gap-2 justify-center">
                 <button
+                 onClick={() => handleMarkAttendance(student._id, 'present')}
+                  disabled={markingId === student._id}
                   className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${
                     student.status === 'present'
                       ? 'bg-green-500 text-white shadow-md'
                       : 'bg-green-100 text-green-700 hover:bg-green-200'
-                  }`}
-                >
-                  Present
-                </button>
+                  } ${markingId === student._id ? 'opacity-50 cursor-not-allowed' : ''}`}
+               >
+                 {markingId === student._id ? 'Marking...' : 'Present'}
+               </button>
                 <button
+                 onClick={() => handleMarkAttendance(student._id, 'late')}
+                  disabled={markingId === student._id}
                   className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${
                     student.status === 'late'
                       ? 'bg-yellow-500 text-white shadow-md'
                       : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
-                  }`}
-                >
-                  Late
-                </button>
+                  } ${markingId === student._id ? 'opacity-50 cursor-not-allowed' : ''}`}
+               >
+                 {markingId === student._id ? 'Marking...' : 'Late'}
+               </button>
                 <button
+                 onClick={() => handleMarkAttendance(student._id, 'absent')}
+                  disabled={markingId === student._id}
                   className={`flex-1 py-2 px-3 rounded font-bold text-sm transition ${
                     student.status === 'absent'
                       ? 'bg-red-500 text-white shadow-md'
                       : 'bg-red-100 text-red-700 hover:bg-red-200'
-                  }`}
-                >
-                  Absent
-                </button>
+                  } ${markingId === student._id ? 'opacity-50 cursor-not-allowed' : ''}`}
+               >
+                 {markingId === student._id ? 'Marking...' : 'Absent'}
+               </button>
               </div>
             </div>
           ))

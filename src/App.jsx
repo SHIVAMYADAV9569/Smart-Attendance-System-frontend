@@ -18,6 +18,7 @@ import LiveFeed from './components/LiveFeed';
 import AttendanceReport from './components/AttendanceReport';
 import FacultyLectures from './components/FacultyLectures';
 import FacultyMarkAttendance from './components/FacultyMarkAttendance';
+import FacultyMarkAttendancePage from './pages/FacultyMarkAttendance';
 import FacultyLayout from './components/FacultyLayout';
 import StudentLayout from './components/StudentLayout';
 import StudentDashboardOverview from './components/StudentDashboardOverview';
@@ -32,7 +33,7 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
-// MyStatus Route Handler - decides layout based on role
+// MyStatus Route Handler - FacultyLayout for faculty, StudentLayout for students
 function MyStatusRoute() {
   const { user, loading } = useAuth();
 
@@ -47,7 +48,11 @@ function MyStatusRoute() {
     );
   }
 
-  return <MyStatus />;
+  return (
+    <StudentLayout>
+      <MyStatus />
+    </StudentLayout>
+  );
 }
 
 // Student Route
@@ -165,14 +170,31 @@ export default function App() {
             }
           />
 
+          {/* My Status - FacultyLayout for faculty, StudentLayout for students */}
           <Route
             path="/my-status"
-            element={
+            element={<MyStatusRoute />}
+          />
+
+          {/* Student My Status - Separate Route */}
+          <Route
+            path="/student/my-status"
+           element={
               <StudentRoute>
                 <StudentLayout>
                   <MyStatus />
                 </StudentLayout>
               </StudentRoute>
+            }
+          />
+
+          {/* Faculty Mark Own Attendance */}
+          <Route
+            path="/faculty/attendance"
+            element={
+              <FacultyLayout>
+                <FacultyMarkAttendancePage />
+              </FacultyLayout>
             }
           />
 

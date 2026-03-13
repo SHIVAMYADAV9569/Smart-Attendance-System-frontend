@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { faceAPI, attendanceAPI } from '../api';
+import { loadFaceModels, getFaceDescriptor } from '../utils/faceRecognition';
 import Webcam from 'react-webcam';
 import { format } from 'date-fns';
 
@@ -11,6 +12,7 @@ export default function StudentDashboard() {
   // States
   const [capturedImage, setCapturedImage] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [modelsReady, setModelsReady] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const [todayAttendance, setTodayAttendance] = useState(null);
@@ -22,7 +24,9 @@ export default function StudentDashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  // Check today's attendance on load
+  useEffect(() => {
+    loadFaceModels().then(() => setModelsReady(true)).catch(console.error);
+  }, []);
   useEffect(() => {
     checkTodayAttendance();
   }, []);
@@ -58,13 +62,24 @@ export default function StudentDashboard() {
       setError('Please capture your face first');
       return;
     }
+    if (!modelsReady) {
+      setError('Face recognition models are loading. Please wait...');
+      return;
+    }
 
     setLoading(true);
     setError('');
     setResult(null);
 
     try {
-      const response = await faceAPI.recognize(capturedImage);
+      const faceDescriptor = await getFaceDescriptor(capturedImage);
+      if (!faceDescriptor) {
+        setError('No face detected. Ensure your face is clearly visible.');
+        setResult({ success: false, message: 'No face detected' });
+        setLoading(false);
+        return;
+      }
+      const response = await faceAPI.recognize(faceDescriptor);
       
       setResult({
         success: true,

@@ -18,6 +18,46 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Response interceptor to handle token expiration
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error.response?.status;
+    const message = (error.response?.data?.message || '').toLowerCase();
+    const url = error.config?.url || '';
+
+    // Do NOT clear auth for face recognition failures (business logic, not auth failure)
+    const isFaceRecognitionError = url.includes('/face/recognize') ||
+      message.includes('face not matched') ||
+      message.includes('face not match') ||
+      message.includes('confidence score') ||
+      message.includes('attendance closed');
+    if (isFaceRecognitionError) {
+      return Promise.reject(error);
+    }
+
+    // Only clear auth for token-invalid responses, NOT for role-based "Access denied"
+    const isTokenInvalid = status === 401 || (status === 403 && message.includes('token'));
+    if (isTokenInvalid) {
+      console.error('❌ Authentication error - clearing invalid token');
+      console.error('Error details:', error.response?.data);
+
+      const token = localStorage.getItem('token');
+      if (token) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+
+        setTimeout(() => {
+          if (!window.location.pathname.includes('/login')) {
+            window.location.href = '/login';
+          }
+        }, 100);
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const authAPI = {
   register: (data) => api.post('/auth/register', data),
   login: (data) => api.post('/auth/login', data),
@@ -25,10 +65,13 @@ export const authAPI = {
 };
 
 export const faceAPI = {
-  registerFace: (faceImage) => api.post('/face/register-face', { faceImage }),
-  recognize: (faceImage) => api.post('/face/recognize', { faceImage }),
+  registerFace: (faceImage, faceDescriptor) =>
+    api.post('/face/register-face', { faceImage, faceDescriptor }),
+  recognize: (faceDescriptor) =>
+    api.post('/face/recognize', { faceDescriptor }),
   getTodayAttendance: () => api.get('/face/today'),
-  testMatch: (faceImage) => api.post('/face/debug/test-match', { faceImage })
+  testMatch: (faceDescriptor) =>
+    api.post('/face/debug/test-match', { faceDescriptor })
 };
 
 export const attendanceAPI = {
@@ -38,7 +81,9 @@ export const attendanceAPI = {
   getTodayRecords: () => api.get('/attendance/today-records'),
   getStats: (userId, params) => api.get(`/attendance/stats/${userId}`, { params }),
   getMonthlyStats: (params) => api.get('/attendance/monthly-stats', { params }),
-  getStudentsStatusToday: () => api.get('/attendance/students-status/today')
+  getStudentsStatusToday: () => api.get('/attendance/students-status/today'),
+  markAttendance: (studentId, status, lectureId) => 
+   api.post('/attendance/mark-attendance', { studentId, status, lectureId })
 };
 
 export const dashboardAPI = {

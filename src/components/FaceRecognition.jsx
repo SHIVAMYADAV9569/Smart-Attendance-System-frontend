@@ -1,6 +1,7 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import Webcam from 'react-webcam';
 import { faceAPI } from '../api';
+import { loadFaceModels, getFaceDescriptor } from '../utils/faceRecognition';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -9,6 +10,7 @@ export default function FaceRecognition() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [modelsReady, setModelsReady] = useState(false);
   const [result, setResult] = useState(null);
   const [todayAttendance, setTodayAttendance] = useState(null);
   const [checkingStatus, setCheckingStatus] = useState(true);
@@ -17,6 +19,9 @@ export default function FaceRecognition() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    loadFaceModels().then(() => setModelsReady(true)).catch(console.error);
+  }, []);
   useEffect(() => {
     checkTodayAttendance();
   }, []);
@@ -49,8 +54,20 @@ export default function FaceRecognition() {
         setError('Failed to capture image. Please try again.');
         return;
       }
+      if (!modelsReady) {
+        setError('Face recognition models are loading. Please wait...');
+        setLoading(false);
+        return;
+      }
 
-      const response = await faceAPI.recognize(imageSrc);
+      const faceDescriptor = await getFaceDescriptor(imageSrc);
+      if (!faceDescriptor) {
+        setError('No face detected in image. Ensure your face is clearly visible.');
+        setLoading(false);
+        return;
+      }
+
+      const response = await faceAPI.recognize(faceDescriptor);
       
       setSuccess(response.data.message);
       setResult({

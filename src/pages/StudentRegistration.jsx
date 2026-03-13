@@ -1,7 +1,8 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Webcam from 'react-webcam';
-import { authAPI } from '../api';
+import { authAPI, faceAPI } from '../api';
+import { loadFaceModels, getFaceDescriptor } from '../utils/faceRecognition';
 
 export default function StudentRegistration() {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ export default function StudentRegistration() {
   // Face capture
   const [capturedFace, setCapturedFace] = useState(null);
   const [showCamera, setShowCamera] = useState(false);
+  const [modelsReady, setModelsReady] = useState(false);
   
   // Status
   const [loading, setLoading] = useState(false);
@@ -81,6 +83,12 @@ export default function StudentRegistration() {
     setShowCamera(true);
   };
 
+  useEffect(() => {
+    if (currentStep >= 2) {
+      loadFaceModels().then(() => setModelsReady(true)).catch(console.error);
+    }
+  }, [currentStep]);
+
   const handleSubmit = async () => {
     if (!capturedFace) {
       setError('Please capture your face photo');
@@ -98,31 +106,26 @@ export default function StudentRegistration() {
       };
       
       const registerResponse = await authAPI.register(registerData);
-      
-      // Step 2: Register face
       const token = registerResponse.data.token;
-      
-      const faceResponse = await fetch('http://localhost:3001/api/face/register-face', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ faceImage: capturedFace })
-      });
+      localStorage.setItem('token', token);
 
-      if (!faceResponse.ok) {
-        throw new Error('Face registration failed');
+      // Step 2: Get face descriptor and register face
+      if (!modelsReady) {
+        await loadFaceModels();
       }
+      const faceDescriptor = await getFaceDescriptor(capturedFace);
+      if (!faceDescriptor) {
+        throw new Error('No face detected in photo. Please ensure your face is clearly visible and try again.');
+      }
+
+      await faceAPI.registerFace(capturedFace, faceDescriptor);
 
       setSuccess('Registration successful! You can now mark your attendance.');
       
-      // Store token and user data (auto-login) - include face image
       const userWithFace = {
         ...registerResponse.data.user,
-        faceImage: capturedFace
+        faceData: capturedFace
       };
-      localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(userWithFace));
       
       // Set registered user and show mark attendance option

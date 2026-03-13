@@ -68,14 +68,11 @@ export default function StudentDashboardOverview() {
         total: 7
       });
 
-      // Fetch today's attendance
-      try {
-        const todayResponse = await attendanceAPI.getTodayRecords();
-        if (todayResponse.data?.records?.length > 0) {
-          setTodayAttendance(todayResponse.data.records[0]);
-        }
-      } catch (e) {
-        console.log('No attendance today');
+      // Get today's attendance from my records (getTodayRecords is faculty-only)
+      const todayStr = format(new Date(), 'yyyy-MM-dd');
+      const todayRecord = allRecords.find(r => format(new Date(r.date), 'yyyy-MM-dd') === todayStr);
+      if (todayRecord) {
+        setTodayAttendance(todayRecord);
       }
 
       // Fetch today's lectures based on department

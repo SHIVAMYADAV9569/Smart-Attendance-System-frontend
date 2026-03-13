@@ -113,16 +113,31 @@ export default function MyStatus() {
     setCurrentWeek(new Date());
   };
 
-  // For Faculty/Admin - show students status
+  // For Faculty/Admin - show students status AND own attendance
   if (user?.role === 'faculty' || user?.role === 'admin') {
-    return (
-      <div>
-        <div className="container mx-auto px-4 py-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-8">Students Attendance Status - Today</h1>
-          <StudentAttendanceStatus />
-        </div>
-      </div>
-    );
+  return (
+     <div>
+       <div className="container mx-auto px-4 py-8">
+         <h1 className="text-3xl font-bold text-gray-800 mb-8">Students Attendance Status - Today</h1>
+         
+         {/* Faculty's Own Attendance Section */}
+         <div className="mb-8 p-6 bg-blue-50 rounded-lg border-2 border-blue-300">
+           <h2 className="text-xl font-bold text-gray-800 mb-4">📷 Your Attendance</h2>
+           <p className="text-gray-600 mb-4">
+             Mark your attendance using face recognition (same as students)
+           </p>
+           <a
+             href="/mark-attendance"
+             className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition transform hover:scale-105"
+           >
+             📸 Mark Your Attendance
+           </a>
+         </div>
+         
+         <StudentAttendanceStatus />
+       </div>
+     </div>
+   );
   }
 
   // For Students - show personal stats

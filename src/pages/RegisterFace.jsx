@@ -1,8 +1,9 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Webcam from 'react-webcam';
 import { faceAPI } from '../api';
 import { useAuth } from '../context/AuthContext';
+import { loadFaceModels, getFaceDescriptor } from '../utils/faceRecognition';
 
 export default function RegisterFace() {
   const webcamRef = useRef(null);
@@ -10,9 +11,19 @@ export default function RegisterFace() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [modelsLoading, setModelsLoading] = useState(true);
   const [capturedImage, setCapturedImage] = useState(null);
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  useEffect(() => {
+    loadFaceModels()
+      .then(() => setModelsLoading(false))
+      .catch((err) => {
+        setError('Failed to load face recognition models. ' + (err.message || ''));
+        setModelsLoading(false);
+      });
+  }, []);
 
   const capture = useCallback(() => {
     const imageSrc = webcamRef.current.getScreenshot();
@@ -31,12 +42,24 @@ export default function RegisterFace() {
     }
 
     setLoading(true);
+    setError('');
     try {
-      await faceAPI.registerFace(capturedImage);
+      const faceDescriptor = await getFaceDescriptor(capturedImage);
+      if (!faceDescriptor) {
+        setError('No face detected. Please ensure your face is clearly visible and try again.');
+        setLoading(false);
+        return;
+      }
+      await faceAPI.registerFace(capturedImage, faceDescriptor);
+      // Update stored user with new faceData for display
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const userData = JSON.parse(storedUser);
+        userData.faceData = capturedImage;
+        localStorage.setItem('user', JSON.stringify(userData));
+      }
       setSuccess('✅ Face registered successfully! Redirecting to your records...');
-      setTimeout(() => {
-        navigate('/my-record');
-      }, 2000);
+      setTimeout(() => window.location.href = '/my-record', 1500);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to register face. Please try again.');
       console.error('Registration error:', err);
@@ -54,10 +77,13 @@ export default function RegisterFace() {
     navigate('/my-record');
   };
 
-  if (!user) {
+  if (!user || modelsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-center">Loading...</div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p>Loading face recognition models...</p>
+        </div>
       </div>
     );
   }

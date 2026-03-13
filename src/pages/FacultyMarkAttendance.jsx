@@ -5,7 +5,7 @@ import { loadFaceModels, getFaceDescriptor } from '../utils/faceRecognition';
 import Webcam from 'react-webcam';
 import { format } from 'date-fns';
 
-export default function StudentMarkAttendance() {
+export default function FacultyMarkAttendance() {
   const { user } = useAuth();
   const webcamRef = useRef(null);
   
@@ -40,11 +40,8 @@ export default function StudentMarkAttendance() {
   }, []);
 
   useEffect(() => {
-    loadFaceModels()
-      .then(() => setModelsReady(true))
-      .catch((err) => console.error('Failed to load face models:', err));
+    loadFaceModels().then(() => setModelsReady(true)).catch(console.error);
   }, []);
-
   useEffect(() => {
     checkTodayAttendance();
   }, []);
@@ -62,19 +59,19 @@ export default function StudentMarkAttendance() {
   const webcam = webcamRef.current;
   if (!webcam) {
      setError('Camera not available. Please ensure camera permissions are granted.');
-  return;
+   return;
    }
    
   const imageSrc = webcam.getScreenshot();
   if (imageSrc) {
     // Validate that image has actual content (not a blank/white image)
-   const img = new Image();
+    const img = new Image();
      img.onload = () => {
        // Check if image has reasonable dimensions
-    if (img.width < 100 || img.height < 100) {
+     if (img.width < 100 || img.height < 100) {
          setError('Captured image is too small. Please position your face properly in the frame.');
         setCapturedImage(null);
-      return;
+       return;
       }
       
        // Valid image captured
@@ -104,7 +101,7 @@ export default function StudentMarkAttendance() {
       return;
     }
     if (!modelsReady) {
-      setError('Face recognition models are still loading. Please wait...');
+      setError('Face recognition models are loading. Please wait...');
       return;
     }
 
@@ -115,12 +112,11 @@ export default function StudentMarkAttendance() {
     try {
       const faceDescriptor = await getFaceDescriptor(capturedImage);
       if (!faceDescriptor) {
-        setError('No face detected in the captured image. Please ensure your face is clearly visible.');
+        setError('No face detected. Ensure your face is clearly visible.');
         setResult({ success: false, message: 'No face detected' });
         setLoading(false);
         return;
       }
-
       const response = await faceAPI.recognize(faceDescriptor);
       
       setResult({
@@ -193,15 +189,15 @@ export default function StudentMarkAttendance() {
   return (
     <div className="max-w-4xl mx-auto">
       {/* Header */}
-      <div className="bg-gradient-to-r from-green-600 to-teal-600 rounded-xl shadow-lg p-6 mb-6 text-white">
+      <div className="bg-gradient-to-r from-purple-600 to-purple-800 rounded-xl shadow-lg p-6 mb-6 text-white">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold mb-2">📸 Mark Attendance</h1>
-            <p className="text-green-100">Face Recognition Based Attendance</p>
+            <h1 className="text-3xl font-bold mb-2">📸 Faculty Attendance</h1>
+            <p className="text-purple-100">Face Recognition Based Attendance for Faculty</p>
           </div>
           <div className="mt-4 md:mt-0 text-center">
             <p className="text-4xl font-bold">{format(currentTime, 'hh:mm a')}</p>
-            <p className="text-green-100">{format(currentTime, 'EEEE, MMMM do, yyyy')}</p>
+            <p className="text-purple-100">{format(currentTime, 'EEEE, MMMM do, yyyy')}</p>
           </div>
         </div>
       </div>
@@ -222,15 +218,15 @@ export default function StudentMarkAttendance() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Student Info */}
+        {/* Faculty Info */}
         <div className="bg-white rounded-xl shadow-lg p-6">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">👤 Student Information</h2>
+          <h2 className="text-xl font-bold text-gray-800 mb-4">👨‍🏫 Faculty Information</h2>
           
           <div className="flex items-center gap-4 mb-6">
             {/* Registered Face Photo */}
             <div className="relative">
               {registeredFace ? (
-                <div className="w-[80px] h-[100px] rounded-lg overflow-hidden border-2 border-green-400 shadow-md">
+                <div className="w-[80px] h-[100px] rounded-lg overflow-hidden border-2 border-purple-400 shadow-md">
                   <img 
                     src={registeredFace} 
                     alt="Registered Face" 
@@ -238,18 +234,18 @@ export default function StudentMarkAttendance() {
                   />
                 </div>
               ) : (
-                <div className="w-[80px] h-[100px] bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center border-2 border-gray-300">
+                <div className="w-[80px] h-[100px] bg-gradient-to-br from-purple-100 to-blue-100 rounded-lg flex items-center justify-center border-2 border-gray-300">
                   <span className="text-3xl">👤</span>
                 </div>
               )}
-              <div className="absolute -bottom-1 -right-1 bg-green-500 text-white p-0.5 rounded-full text-xs">
+              <div className="absolute -bottom-1 -right-1 bg-purple-500 text-white p-0.5 rounded-full text-xs">
                 ✅
               </div>
             </div>
             <div>
               <p className="text-xl font-bold text-gray-800">{user?.name}</p>
               <p className="text-gray-600">{user?.email}</p>
-              <p className="text-xs text-green-600 font-medium mt-1">
+              <p className="text-xs text-purple-600 font-medium mt-1">
                 {registeredFace ? '✓ Face Registered' : '✗ Face Not Registered'}
               </p>
             </div>
@@ -257,16 +253,16 @@ export default function StudentMarkAttendance() {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-sm text-gray-600">Course</p>
-              <p className="font-bold text-gray-800">{user?.course || 'N/A'}</p>
+              <p className="text-sm text-gray-600">Role</p>
+              <p className="font-bold text-gray-800 capitalize">{user?.role || 'Faculty'}</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-3">
               <p className="text-sm text-gray-600">Department</p>
               <p className="font-bold text-gray-800">{user?.department || 'N/A'}</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-sm text-gray-600">Roll Number</p>
-              <p className="font-bold text-gray-800">{user?.rollNumber || user?.enrollmentNumber || 'N/A'}</p>
+              <p className="text-sm text-gray-600">Employee ID</p>
+              <p className="font-bold text-gray-800">{user?.enrollmentNumber || user?.employeeId || 'N/A'}</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-3">
               <p className="text-sm text-gray-600">Date</p>
@@ -339,9 +335,9 @@ export default function StudentMarkAttendance() {
 
           {/* Registered Face Reference */}
           {registeredFace && (
-            <div className="bg-blue-50 rounded-lg p-3 mb-4">
-              <p className="text-xs text-blue-600 font-medium mb-2">📷 Registered Face (Reference)</p>
-              <div className="w-16 h-16 rounded-lg overflow-hidden border-2 border-blue-300 inline-block">
+            <div className="bg-purple-50 rounded-lg p-3 mb-4">
+              <p className="text-xs text-purple-600 font-medium mb-2">📷 Registered Face (Reference)</p>
+              <div className="w-16 h-16 rounded-lg overflow-hidden border-2 border-purple-300 inline-block">
                 <img src={registeredFace} alt="Registered" className="w-full h-full object-cover" />
               </div>
             </div>
@@ -350,7 +346,7 @@ export default function StudentMarkAttendance() {
           <div className="mb-4">
             {!capturedImage ? (
               <div className="relative">
-                <div className="border-4 border-dashed border-blue-400 rounded-lg overflow-hidden bg-black">
+                <div className="border-4 border-purple-400 rounded-lg overflow-hidden bg-black">
                   <Webcam
                     ref={webcamRef}
                     screenshotFormat="image/jpeg"
@@ -378,7 +374,7 @@ export default function StudentMarkAttendance() {
                 className={`flex-1 font-bold py-3 px-4 rounded-lg transition ${
                   timeRule.status === 'closed' || todayAttendance?.status === 'present' || todayAttendance?.status === 'late'
                     ? 'bg-gray-300 cursor-not-allowed text-gray-500'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                    : 'bg-purple-600 hover:bg-purple-700 text-white'
                 }`}
               >
                 📷 Capture Face
@@ -422,15 +418,16 @@ export default function StudentMarkAttendance() {
       </div>
 
       {/* Instructions */}
-      <div className="bg-blue-50 rounded-xl shadow-lg p-6 mt-6">
-        <h3 className="text-lg font-bold text-blue-800 mb-3">📋 Instructions</h3>
-        <ul className="text-blue-700 space-y-2">
+      <div className="bg-purple-50 rounded-xl shadow-lg p-6 mt-6">
+        <h3 className="text-lg font-bold text-purple-800 mb-3">📋 Instructions for Faculty</h3>
+        <ul className="text-purple-700 space-y-2">
           <li>• Ensure good lighting on your face</li>
           <li>• Look directly at the camera</li>
           <li>• Keep your face centered in the frame</li>
           <li>• Remove sunglasses, masks, or hats</li>
           <li>• Your face must match the registered photo exactly</li>
           <li>• If face doesn't match, attendance will NOT be marked</li>
+          <li>• Same time rules apply as students (9 AM - 2 PM)</li>
         </ul>
       </div>
 
@@ -438,13 +435,7 @@ export default function StudentMarkAttendance() {
       {!registeredFace && (
         <div className="bg-yellow-50 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded mt-6">
           <p className="font-bold">⚠️ Face Not Registered</p>
-          <p>You need to register your face before marking attendance. Visit Register Face to set up face recognition.</p>
-        </div>
-      )}
-
-      {registeredFace && !modelsReady && (
-        <div className="bg-blue-50 border-l-4 border-blue-500 text-blue-800 p-4 rounded mt-6">
-          <p className="font-bold">⏳ Loading face recognition models...</p>
+          <p>You need to register your face before marking attendance. Please contact the administrator.</p>
         </div>
       )}
     </div>

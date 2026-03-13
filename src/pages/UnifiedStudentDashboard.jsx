@@ -2,6 +2,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { faceAPI, attendanceAPI, authAPI } from '../api';
+import { loadFaceModels, getFaceDescriptor } from '../utils/faceRecognition';
 import Webcam from 'react-webcam';
 import { format, parseISO, subMonths } from 'date-fns';
 import {
@@ -33,6 +34,7 @@ export default function UnifiedStudentDashboard() {
   const [activeTab, setActiveTab] = useState('attendance'); // 'attendance', 'myStatus'
   const [capturedImage, setCapturedImage] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [modelsReady, setModelsReady] = useState(false);
   const [attendanceResult, setAttendanceResult] = useState(null);
   const [error, setError] = useState('');
   const [todayAttendance, setTodayAttendance] = useState(null);
@@ -55,7 +57,9 @@ export default function UnifiedStudentDashboard() {
     return () => clearInterval(timer);
   }, []);
 
-  // Check today's attendance on load
+  useEffect(() => {
+    loadFaceModels().then(() => setModelsReady(true)).catch(console.error);
+  }, []);
   useEffect(() => {
     checkTodayAttendance();
     fetchMyStatusData();
@@ -120,13 +124,24 @@ export default function UnifiedStudentDashboard() {
       setError('Please capture your face first');
       return;
     }
+    if (!modelsReady) {
+      setError('Face recognition models are loading. Please wait...');
+      return;
+    }
 
     setLoading(true);
     setError('');
     setAttendanceResult(null);
 
     try {
-      const response = await faceAPI.recognize(capturedImage);
+      const faceDescriptor = await getFaceDescriptor(capturedImage);
+      if (!faceDescriptor) {
+        setError('No face detected. Ensure your face is clearly visible.');
+        setAttendanceResult({ success: false, message: 'No face detected' });
+        setLoading(false);
+        return;
+      }
+      const response = await faceAPI.recognize(faceDescriptor);
       
       setAttendanceResult({
         success: true,
