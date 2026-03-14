@@ -8,7 +8,7 @@ import * as faceapi from 'face-api.js';
 // Use /models (proxied to backend in dev) or full URL when API_URL is set
 const MODEL_URL = import.meta.env.DEV
   ? '/models'
-  : (import.meta.env.VITE_API_URL || 'http://localhost:3001/api').replace(/\/api\/?$/, '') + '/models';
+  : (import.meta.env.VITE_API_URL/api || 'http://localhost:3001/api').replace(/\/api\/?$/, '') + '/models';
 
 let modelsLoaded = false;
 
