@@ -4,6 +4,7 @@ import { faceAPI } from '../api';
 import { loadFaceModels, getFaceDescriptor } from '../utils/faceRecognition';
 import Webcam from 'react-webcam';
 import { format } from 'date-fns';
+import { zonedTimeToUtc, utcToZonedTime } from 'date-fns-tz';
 
 export default function StudentMarkAttendance() {
   const { user } = useAuth();
@@ -17,6 +18,14 @@ export default function StudentMarkAttendance() {
   const [todayAttendance, setTodayAttendance] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [registeredFace, setRegisteredFace] = useState(null);
+
+  // IST timezone helper function
+  const getISTTime = () => {
+    const now = new Date();
+    const utcTime = zonedTimeToUtc(now, 'UTC');
+    const istTime = utcToZonedTime(utcTime, 'Asia/Kolkata');
+    return istTime;
+  };
 
   // Get registered face from user data
   useEffect(() => {
@@ -35,7 +44,7 @@ export default function StudentMarkAttendance() {
   }, [user]);
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    const timer = setInterval(() => setCurrentTime(getISTTime()), 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -167,10 +176,11 @@ export default function StudentMarkAttendance() {
     }
   };
 
-  // Check time rules
+  // Check time rules using IST
   const getCurrentTimeRule = () => {
-    const hour = currentTime.getHours();
-    const minute = currentTime.getMinutes();
+    const istTime = getISTTime();
+    const hour = istTime.getHours();
+    const minute = istTime.getMinutes();
     const timeValue = hour * 60 + minute;
     
     const nineAM = 9 * 60;
@@ -201,7 +211,7 @@ export default function StudentMarkAttendance() {
           </div>
           <div className="mt-4 md:mt-0 text-center">
             <p className="text-4xl font-bold">{format(currentTime, 'hh:mm a')}</p>
-            <p className="text-green-100">{format(currentTime, 'EEEE, MMMM do, yyyy')}</p>
+            <p className="text-green-100">{format(currentTime, 'EEEE, MMMM do, yyyy')} IST</p>
           </div>
         </div>
       </div>
@@ -271,6 +281,7 @@ export default function StudentMarkAttendance() {
             <div className="bg-gray-50 rounded-lg p-3">
               <p className="text-sm text-gray-600">Date</p>
               <p className="font-bold text-gray-800">{format(currentTime, 'dd/MM/yyyy')}</p>
+              <p className="text-xs text-gray-500">IST</p>
             </div>
           </div>
 
