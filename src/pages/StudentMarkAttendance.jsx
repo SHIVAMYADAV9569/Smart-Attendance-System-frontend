@@ -4,7 +4,6 @@ import { faceAPI } from '../api';
 import { loadFaceModels, getFaceDescriptor } from '../utils/faceRecognition';
 import Webcam from 'react-webcam';
 import { format } from 'date-fns';
-import { zonedTimeToUtc, utcToZonedTime } from 'date-fns-tz';
 
 export default function StudentMarkAttendance() {
   const { user } = useAuth();
@@ -19,11 +18,12 @@ export default function StudentMarkAttendance() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [registeredFace, setRegisteredFace] = useState(null);
 
-  // IST timezone helper function
+  // IST timezone helper function (manual timezone conversion)
   const getISTTime = () => {
     const now = new Date();
-    const utcTime = zonedTimeToUtc(now, 'UTC');
-    const istTime = utcToZonedTime(utcTime, 'Asia/Kolkata');
+    // IST is UTC+5:30
+    const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
+    const istTime = new Date(now.getTime() + istOffset + (now.getTimezoneOffset() * 60 * 1000));
     return istTime;
   };
 
