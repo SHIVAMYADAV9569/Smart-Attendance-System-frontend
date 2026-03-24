@@ -20,6 +20,15 @@ import {
 } from 'recharts';
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, eachDayOfInterval, isSameDay, parseISO } from 'date-fns';
 
+// IST timezone helper function (manual timezone conversion)
+const getISTTime = (date) => {
+  const now = new Date(date);
+  // IST is UTC+5:30
+  const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
+  const istTime = new Date(now.getTime() + istOffset + (now.getTimezoneOffset() * 60 * 1000));
+  return istTime;
+};
+
 const COLORS = ['#10b981', '#ef4444', '#f59e0b'];
 
 export default function MyStatus() {
@@ -310,8 +319,8 @@ export default function MyStatus() {
                 <tr className="border-b-2 border-gray-200">
                   <th className="text-left py-3 px-4 font-bold text-gray-700">Date</th>
                   <th className="text-left py-3 px-4 font-bold text-gray-700">Day</th>
-                  <th className="text-left py-3 px-4 font-bold text-gray-700">Check In</th>
-                  <th className="text-left py-3 px-4 font-bold text-gray-700">Check Out</th>
+                  <th className="text-left py-3 px-4 font-bold text-gray-700">Check In (IST)</th>
+                  <th className="text-left py-3 px-4 font-bold text-gray-700">Check Out (IST)</th>
                   <th className="text-left py-3 px-4 font-bold text-gray-700">Status</th>
                 </tr>
               </thead>
@@ -322,10 +331,10 @@ export default function MyStatus() {
                       <td className="py-3 px-4">{format(new Date(record.date), 'MMM dd, yyyy')}</td>
                       <td className="py-3 px-4 capitalize">{record.fullDay}</td>
                       <td className="py-3 px-4">
-                        {record.checkInTime ? format(new Date(record.checkInTime), 'hh:mm a') : '-'}
+                        {record.checkInTime ? format(getISTTime(record.checkInTime), 'hh:mm a') : '-'}
                       </td>
                       <td className="py-3 px-4">
-                        {record.checkOutTime ? format(new Date(record.checkOutTime), 'hh:mm a') : '-'}
+                        {record.checkOutTime ? format(getISTTime(record.checkOutTime), 'hh:mm a') : '-'}
                       </td>
                       <td className="py-3 px-4">
                         <span

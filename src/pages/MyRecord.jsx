@@ -16,6 +16,15 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
+// IST timezone helper function (manual timezone conversion)
+const getISTTime = (date) => {
+  const now = new Date(date);
+  // IST is UTC+5:30
+  const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
+  const istTime = new Date(now.getTime() + istOffset + (now.getTimezoneOffset() * 60 * 1000));
+  return istTime;
+};
+
 const COLORS = {
   present: '#10b981',
   late: '#f59e0b',
@@ -384,7 +393,7 @@ export default function MyRecord() {
                   <tr className="border-b-2 border-gray-200">
                     <th className="text-left py-3 px-4 font-bold text-gray-700">Date</th>
                     <th className="text-left py-3 px-4 font-bold text-gray-700">Day</th>
-                    <th className="text-left py-3 px-4 font-bold text-gray-700">Check In</th>
+                    <th className="text-left py-3 px-4 font-bold text-gray-700">Check In (IST)</th>
                     <th className="text-left py-3 px-4 font-bold text-gray-700">Status</th>
                   </tr>
                 </thead>
@@ -394,7 +403,7 @@ export default function MyRecord() {
                       <td className="py-3 px-4">{format(new Date(record.date), 'dd MMM yyyy')}</td>
                       <td className="py-3 px-4">{record.fullDay}</td>
                       <td className="py-3 px-4">
-                        {record.checkInTime ? format(new Date(record.checkInTime), 'hh:mm a') : '-'}
+                        {record.checkInTime ? format(getISTTime(record.checkInTime), 'hh:mm a') : '-'}
                       </td>
                       <td className="py-3 px-4">
                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(record.status)}`}>
