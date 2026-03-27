@@ -19,15 +19,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, eachDayOfInterval, isSameDay, parseISO } from 'date-fns';
-
-// IST timezone helper function (manual timezone conversion)
-const getISTTime = (date) => {
-  const now = new Date(date);
-  // IST is UTC+5:30
-  const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
-  const istTime = new Date(now.getTime() + istOffset + (now.getTimezoneOffset() * 60 * 1000));
-  return istTime;
-};
+import { formatIST } from '../utils/timezone';
 
 const COLORS = ['#10b981', '#ef4444', '#f59e0b'];
 
@@ -331,10 +323,10 @@ export default function MyStatus() {
                       <td className="py-3 px-4">{format(new Date(record.date), 'MMM dd, yyyy')}</td>
                       <td className="py-3 px-4 capitalize">{record.fullDay}</td>
                       <td className="py-3 px-4">
-                        {record.checkInTime ? format(getISTTime(record.checkInTime), 'hh:mm a') : '-'}
+                        {record.checkInTime ? formatIST(record.checkInTime) : '-'}
                       </td>
                       <td className="py-3 px-4">
-                        {record.checkOutTime ? format(getISTTime(record.checkOutTime), 'hh:mm a') : '-'}
+                        {record.checkOutTime ? formatIST(record.checkOutTime) : '-'}
                       </td>
                       <td className="py-3 px-4">
                         <span

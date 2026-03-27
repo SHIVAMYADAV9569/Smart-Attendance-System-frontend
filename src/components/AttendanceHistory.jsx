@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { attendanceAPI } from '../api';
 import { format } from 'date-fns';
 import { useAuth } from '../context/AuthContext';
+import { formatIST } from '../utils/timezone';
 
 export default function AttendanceHistory() {
   const [records, setRecords] = useState([]);
@@ -120,10 +121,10 @@ export default function AttendanceHistory() {
                       <tr key={record._id} className="border-b border-gray-100 hover:bg-gray-50">
                         <td className="py-3 px-4">{format(new Date(record.date), 'MMM dd, yyyy')}</td>
                         <td className="py-3 px-4">
-                          {record.checkInTime ? format(new Date(record.checkInTime), 'hh:mm a') : '-'}
+                          {record.checkInTime ? formatIST(record.checkInTime) : '-'}
                         </td>
                         <td className="py-3 px-4">
-                          {record.checkOutTime ? format(new Date(record.checkOutTime), 'hh:mm a') : '-'}
+                          {record.checkOutTime ? formatIST(record.checkOutTime) : '-'}
                         </td>
                         <td className="py-3 px-4">
                           <span
@@ -180,10 +181,10 @@ export default function AttendanceHistory() {
                       📅 {format(new Date(record.date), 'MMM dd, yyyy')}
                     </p>
                     <p className="text-gray-600">
-                      🕐 Check In: {record.checkInTime ? format(new Date(record.checkInTime), 'hh:mm a') : '-'}
+                      🕐 Check In: {record.checkInTime ? formatIST(record.checkInTime) : '-'}
                     </p>
                     <p className="text-gray-600">
-                      🕑 Check Out: {record.checkOutTime ? format(new Date(record.checkOutTime), 'hh:mm a') : '-'}
+                      🕑 Check Out: {record.checkOutTime ? formatIST(record.checkOutTime) : '-'}
                     </p>
                   </div>
                 </div>

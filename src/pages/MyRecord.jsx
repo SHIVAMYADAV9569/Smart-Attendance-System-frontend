@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { attendanceAPI, faceAPI } from '../api';
 import { format, subDays, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, parseISO, addWeeks, subWeeks } from 'date-fns';
+import { formatIST } from '../utils/timezone';
 import {
   BarChart,
   Bar,
@@ -15,15 +16,6 @@ import {
   Cell,
   ResponsiveContainer
 } from 'recharts';
-
-// IST timezone helper function (manual timezone conversion)
-const getISTTime = (date) => {
-  const now = new Date(date);
-  // IST is UTC+5:30
-  const istOffset = 5.5 * 60 * 60 * 1000; // 5.5 hours in milliseconds
-  const istTime = new Date(now.getTime() + istOffset + (now.getTimezoneOffset() * 60 * 1000));
-  return istTime;
-};
 
 const COLORS = {
   present: '#10b981',
@@ -403,7 +395,7 @@ export default function MyRecord() {
                       <td className="py-3 px-4">{format(new Date(record.date), 'dd MMM yyyy')}</td>
                       <td className="py-3 px-4">{record.fullDay}</td>
                       <td className="py-3 px-4">
-                        {record.checkInTime ? format(getISTTime(record.checkInTime), 'hh:mm a') : '-'}
+                        {record.checkInTime ? formatIST(record.checkInTime) : '-'}
                       </td>
                       <td className="py-3 px-4">
                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(record.status)}`}>

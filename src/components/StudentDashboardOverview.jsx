@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { attendanceAPI, lectureAPI } from '../api';
 import { format, startOfWeek, endOfWeek, isSameDay } from 'date-fns';
+import { formatIST } from '../utils/timezone';
 import {
   PieChart,
   Pie,
@@ -235,7 +236,7 @@ export default function StudentDashboardOverview() {
           </div>
           <p className="text-sm text-gray-500 mt-2">
             {todayAttendance?.checkInTime 
-              ? format(new Date(todayAttendance.checkInTime), 'hh:mm a')
+              ? formatIST(todayAttendance.checkInTime)
               : 'Mark your attendance'
             }
           </p>

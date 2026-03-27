@@ -4,6 +4,7 @@ import { faceAPI } from '../api';
 import { loadFaceModels, getFaceDescriptor } from '../utils/faceRecognition';
 import Webcam from 'react-webcam';
 import { format } from 'date-fns';
+import { formatIST } from '../utils/timezone';
 
 export default function FacultyMarkAttendance() {
   const { user } = useAuth();
@@ -282,7 +283,7 @@ export default function FacultyMarkAttendance() {
                   <div>
                     <p className="font-bold text-lg">{todayAttendance.status.toUpperCase()}</p>
                     <p className="text-sm">
-                      Time: {todayAttendance.checkInTime ? format(new Date(todayAttendance.checkInTime), 'hh:mm a') : 'N/A'}
+                      Time: {todayAttendance.checkInTime ? formatIST(todayAttendance.checkInTime) : 'N/A'}
                     </p>
                   </div>
                 </div>

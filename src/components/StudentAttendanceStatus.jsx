@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { attendanceAPI } from '../api';
 import { format } from 'date-fns';
+import { formatIST } from '../utils/timezone';
 
 export default function StudentAttendanceStatus() {
   const [students, setStudents] = useState([]);
@@ -164,7 +165,7 @@ export default function StudentAttendanceStatus() {
                 {student.checkInTime && (
                   <p className="text-sm text-gray-600 mt-2">
                     <span className="font-semibold">Check In:</span>{' '}
-                    {format(new Date(student.checkInTime), 'hh:mm a')}
+                    {formatIST(student.checkInTime)}
                   </p>
                 )}
               </div>

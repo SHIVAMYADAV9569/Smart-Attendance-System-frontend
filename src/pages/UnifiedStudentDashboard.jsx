@@ -5,6 +5,7 @@ import { faceAPI, attendanceAPI, authAPI } from '../api';
 import { loadFaceModels, getFaceDescriptor } from '../utils/faceRecognition';
 import Webcam from 'react-webcam';
 import { format, parseISO, subMonths } from 'date-fns';
+import { formatIST } from '../utils/timezone';
 import {
   BarChart,
   Bar,
@@ -358,7 +359,7 @@ export default function UnifiedStudentDashboard() {
                       <div>
                         <p className="font-bold text-lg">{todayAttendance.status.toUpperCase()}</p>
                         <p className="text-sm">
-                          Time: {todayAttendance.checkInTime ? format(new Date(todayAttendance.checkInTime), 'hh:mm a') : 'N/A'}
+                          Time: {todayAttendance.checkInTime ? formatIST(todayAttendance.checkInTime) : 'N/A'}
                         </p>
                       </div>
                     </div>
@@ -603,7 +604,7 @@ export default function UnifiedStudentDashboard() {
                         <td className="py-3 px-4">{format(parseISO(record.date), 'dd MMM yyyy')}</td>
                         <td className="py-3 px-4">{format(parseISO(record.date), 'EEEE')}</td>
                         <td className="py-3 px-4">
-                          {record.checkInTime ? format(parseISO(record.checkInTime), 'hh:mm a') : '-'}
+                          {record.checkInTime ? formatIST(record.checkInTime) : '-'}
                         </td>
                         <td className="py-3 px-4">
                           <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(record.status)}`}>
