@@ -11,22 +11,7 @@
  */
 export const toIST = (date) => {
   if (!date) return null;
-  
-  const utcDate = new Date(date);
-  
-  // Get the UTC time in milliseconds
-  const utcTime = utcDate.getTime();
-  
-  // Get the local timezone offset in milliseconds
-  const localOffset = utcDate.getTimezoneOffset() * 60 * 1000;
-  
-  // Convert UTC to IST by adding 5.5 hours (IST offset)
-  const istOffset = 5.5 * 60 * 60 * 1000; // 5 hours 30 minutes in milliseconds
-  
-  // Calculate IST time
-  const istTime = new Date(utcTime + localOffset + istOffset);
-  
-  return istTime;
+  return new Date(date); // simple rakho
 };
 
 /**
@@ -35,49 +20,24 @@ export const toIST = (date) => {
  * @param {string} format - Optional format string (default: 'hh:mm a')
  * @returns {string} - Formatted time string in IST
  */
-export const formatIST = (date, formatStr = 'hh:mm a') => {
-  const istDate = toIST(date);
-  if (!istDate) return '-';
-  
-  // Use date-fns formatting if available, otherwise use native formatting
-  try {
-    const { format } = require('date-fns');
-    return format(istDate, formatStr);
-  } catch (e) {
-    // Fallback to native formatting
-    if (formatStr === 'hh:mm a') {
-      let hours = istDate.getHours();
-      const minutes = istDate.getMinutes();
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12;
-      hours = hours ? hours : 12; // hour '0' should be '12'
-      const minutesStr = minutes < 10 ? '0' + minutes : minutes;
-      return `${hours}:${minutesStr} ${ampm}`;
-    }
-    return istDate.toLocaleString();
-  }
-};
 
 /**
  * Formats a date to IST date string (for display)
  * @param {Date|string} date - The date to format
  * @returns {string} - Formatted date string in IST
  */
-export const formatDateIST = (date) => {
-  const istDate = toIST(date);
-  if (!istDate) return '-';
-  
-  try {
-    const { format } = require('date-fns');
-    return format(istDate, 'dd MMM yyyy');
-  } catch (e) {
-    return istDate.toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
-  }
+export const formatIST = (date) => {
+  if (!date) return '-';
+
+  return new Date(date).toLocaleTimeString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
 };
+
+
 
 /**
  * Gets the start of day in IST

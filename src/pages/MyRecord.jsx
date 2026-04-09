@@ -55,7 +55,7 @@ export default function MyRecord() {
       
       // Filter records for current week
       const filteredRecords = allRecords.filter(record => {
-        const recordDate = new Date(record.date);
+        const recordDate = parseISO(record.date);
         return recordDate >= weekStart && recordDate <= weekEnd;
       });
 
@@ -67,7 +67,9 @@ export default function MyRecord() {
       // Prepare daily data for the week
       const daysOfWeek = eachDayOfInterval({ start: weekStart, end: weekEnd });
       const dailyData = daysOfWeek.map(day => {
-        const dayRecord = filteredRecords.find(r => isSameDay(new Date(r.date), day));
+        const dayRecord = filteredRecords.find(r => 
+          isSameDay(parseISO(r.date), day)
+        );
         return {
           date: format(day, 'yyyy-MM-dd'),
           dayName: format(day, 'EEE'),
