@@ -191,10 +191,12 @@ export default function Dashboard() {
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-bold text-gray-700">
-                    {new Date(activity.checkInTime).toLocaleTimeString([], {
+                    {activity.checkInTime ? new Date(activity.checkInTime).toLocaleTimeString('en-IN', {
                       hour: '2-digit',
-                      minute: '2-digit'
-                    })}
+                      minute: '2-digit',
+                      hour12: true,
+                      timeZone: 'Asia/Kolkata'
+                    }) : '-'}
                   </p>
                   <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
                     CHECK IN
