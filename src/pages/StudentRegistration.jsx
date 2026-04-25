@@ -115,18 +115,34 @@ export default function StudentRegistration() {
       }
       const faceDescriptor = await getFaceDescriptor(capturedFace);
       if (!faceDescriptor) {
-        throw new Error('No face detected in photo. Please ensure your face is clearly visible and try again.');
+        throw new Error('Registration failed. No face detected in photo. Please ensure your face is clearly visible and try again.');
       }
 
       await faceAPI.registerFace(capturedFace, faceDescriptor);
 
-      setSuccess('Registration successful! You can now mark your attendance.');
+      // Fetch updated user data from server
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+      const response = await fetch(`${API_URL}/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       
-      const userWithFace = {
-        ...registerResponse.data.user,
-        faceData: capturedFace
-      };
+      let userWithFace;
+      if (response.ok) {
+        userWithFace = await response.json();
+      } else {
+        // Fallback to registration response
+        userWithFace = {
+          ...registerResponse.data.user,
+          faceData: capturedFace,
+          hasFaceData: true
+        };
+      }
+      
       localStorage.setItem('user', JSON.stringify(userWithFace));
+      
+      setSuccess('Registration successful! You can now mark your attendance.');
       
       // Set registered user and show mark attendance option
       setRegisteredUser(registerResponse.data.user);
@@ -135,7 +151,15 @@ export default function StudentRegistration() {
       
     } catch (err) {
       console.error('Registration error:', err);
-      setError(err.response?.data?.message || err.message || 'Registration failed. Please try again.');
+      
+      // Check for face already registered error
+      if (err.response?.status === 409 || err.response?.data?.code === 'FACE_ALREADY_REGISTERED') {
+        setError('Face already registered. This face is already associated with another account.');
+      } else if (err.message && err.message.includes('No face detected')) {
+        setError(err.message);
+      } else {
+        setError(err.response?.data?.message || err.message || 'Registration failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

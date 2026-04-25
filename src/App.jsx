@@ -33,6 +33,24 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
+// Face Registration Required Component
+function FaceRegistrationRequired({ children }) {
+  const { user, loading } = useAuth();
+
+  if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  if (!user) return <Navigate to="/login" />;
+
+  // Check if user has registered their face
+  const hasFaceRegistered = user.faceData || user.hasFaceData;
+
+  // If face is not registered, redirect to register-face page
+  if (!hasFaceRegistered) {
+    return <Navigate to="/register-face" replace />;
+  }
+
+  return children;
+}
+
 // MyStatus Route Handler - FacultyLayout for faculty, StudentLayout for students
 function MyStatusRoute() {
   const { user, loading } = useAuth();
@@ -102,71 +120,71 @@ export default function App() {
           <Route
             path="/student-home"
             element={
-              <StudentRoute>
+              <FaceRegistrationRequired>
                 <StudentLayout>
                   <StudentDashboardOverview />
                 </StudentLayout>
-              </StudentRoute>
+              </FaceRegistrationRequired>
             }
           />
 
           <Route
             path="/student-mark-attendance"
             element={
-              <StudentRoute>
+              <FaceRegistrationRequired>
                 <StudentLayout>
                   <StudentMarkAttendance />
                 </StudentLayout>
-              </StudentRoute>
+              </FaceRegistrationRequired>
             }
           />
 
           <Route
             path="/student-dashboard"
             element={
-              <StudentRoute>
+              <FaceRegistrationRequired>
                 <Navigate to="/student-home" />
-              </StudentRoute>
+              </FaceRegistrationRequired>
             }
           />
 
           <Route
             path="/attendance"
             element={
-              <StudentRoute>
+              <FaceRegistrationRequired>
                 <Navigate to="/student-mark-attendance" />
-              </StudentRoute>
+              </FaceRegistrationRequired>
             }
           />
 
           <Route
             path="/mark-attendance"
             element={
-              <StudentRoute>
+              <FaceRegistrationRequired>
                 <Navigate to="/student-mark-attendance" />
-              </StudentRoute>
+              </FaceRegistrationRequired>
             }
           />
 
           <Route
             path="/my-records"
             element={
-              <StudentRoute>
+              <FaceRegistrationRequired>
                 <StudentLayout>
                   <AttendanceHistory />
                 </StudentLayout>
-              </StudentRoute>
+              </FaceRegistrationRequired>
             }
           />
 
           <Route
             path="/my-record"
             element={
-              <StudentRoute>
+              <FaceRegistrationRequired>
                 <StudentLayout>
                   <MyRecord />
                 </StudentLayout>
-              </StudentRoute>
+              </FaceRegistrationRequired>
             }
           />
 
@@ -180,11 +198,11 @@ export default function App() {
           <Route
             path="/student/my-status"
            element={
-              <StudentRoute>
+              <FaceRegistrationRequired>
                 <StudentLayout>
                   <MyStatus />
                 </StudentLayout>
-              </StudentRoute>
+              </FaceRegistrationRequired>
             }
           />
 

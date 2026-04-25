@@ -46,22 +46,52 @@ export default function RegisterFace() {
     try {
       const faceDescriptor = await getFaceDescriptor(capturedImage);
       if (!faceDescriptor) {
-        setError('No face detected. Please ensure your face is clearly visible and try again.');
+        setError('Registration failed. No face detected in the captured image. Please ensure your face is clearly visible and try again.');
         setLoading(false);
         return;
       }
       await faceAPI.registerFace(capturedImage, faceDescriptor);
-      // Update stored user with new faceData for display
+      
+      // Fetch updated user data from server to get faceData status
+      const storedToken = localStorage.getItem('token');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+      if (storedToken) {
+        const response = await fetch(`${API_URL}/auth/me`, {
+          headers: {
+            'Authorization': `Bearer ${storedToken}`
+          }
+        });
+        if (response.ok) {
+          const userData = await response.json();
+          localStorage.setItem('user', JSON.stringify(userData));
+          // Update auth context by triggering a page reload
+          window.location.href = '/my-record';
+          return;
+        }
+      }
+      
+      // Update stored user with new faceData for display (fallback)
       const storedUser = localStorage.getItem('user');
       if (storedUser) {
         const userData = JSON.parse(storedUser);
         userData.faceData = capturedImage;
+        userData.hasFaceData = true;
         localStorage.setItem('user', JSON.stringify(userData));
       }
       setSuccess('✅ Face registered successfully! Redirecting to your records...');
       setTimeout(() => window.location.href = '/my-record', 1500);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to register face. Please try again.');
+      const errorMessage = err.response?.data?.message || 'Failed to register face. Please try again.';
+      
+      // Check for face already registered error
+      if (err.response?.status === 409 || err.response?.data?.code === 'FACE_ALREADY_REGISTERED') {
+        setError('Face already registered. This face is already associated with another account.');
+      } else if (!faceDescriptor) {
+        setError('Registration failed. No face detected. Please try again.');
+      } else {
+        setError(errorMessage);
+      }
+      
       console.error('Registration error:', err);
     } finally {
       setLoading(false);
@@ -71,10 +101,6 @@ export default function RegisterFace() {
   const handleRetake = () => {
     setCapturedImage(null);
     setError('');
-  };
-
-  const handleSkip = () => {
-    navigate('/my-record');
   };
 
   if (!user || modelsLoading) {
@@ -208,13 +234,6 @@ export default function RegisterFace() {
                 {loading ? '⏳ Registering...' : '✅ Register Face'}
               </button>
             </div>
-
-            <button
-              onClick={handleSkip}
-              className="w-full mt-4 text-gray-600 hover:text-gray-800 font-semibold py-2"
-            >
-              Skip For Now
-            </button>
           </>
         )}
 
